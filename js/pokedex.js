@@ -1,5 +1,16 @@
+/*################
+Proyecto PokeDex Javier Cavanilles
+Llamamos a la Pokedex consiguiendo un numero definido de Pokemon (en principio 15 pero podria variar). 
+El Html pintara primero los pokemon definidos y luego habra un boton para ir cargando mas. 
+Los pokemon llegan desordenados por lo que hacemos un promise all
+Si pulsamos el boton de mas carga 15 mas teniendo en cuenta no repetir los pokemons. 
+*/
+
 const baseUrl = 'https://pokeapi.co/api/v2/pokemon/';
 let totalPokemoncargados=0;
+
+
+
 
 function pintaPokemon(name,image){
     //Creacion LI
@@ -34,35 +45,33 @@ function pintaPokemon(name,image){
 }
 
 
-function getPokemon(pokemonurl){
-    fetch(pokemonurl)
-        .then((response)=>{return response.json();})
-        .then((elem)=>{
-            console.log(elem)
-            pintaPokemon(elem.name,elem.sprites.front_default)
-        })
+function getPokemon(numero,offset){
+numero=numero+totalPokemoncargados;
+if (totalPokemoncargados!=0){
+    offset=offset+1;
+}
+console.log(numero)
+const allpokemons=[];
+for (let i=offset;i<=numero; i++){
+    allpokemons.push("https://pokeapi.co/api/v2/pokemon/"+i)
+}
+const allPoleFectch=allpokemons.map(pokemonURL => fetch(pokemonURL)
+.then((response)=> response.json()))
 
+Promise.all(allPoleFectch).then((element)=>{
+    for (elem of element){
+        pintaPokemon(elem.name,elem.sprites.front_default)
+    }
+    totalPokemoncargados=totalPokemoncargados+numero+1;
+
+})
 }
 
 
-
-function getAllPokemons(numero,offset){
-
-    fetch(baseUrl+'?limit='+numero+'&offset='+offset)
-        .then((response) => { return response.json(); })
-        .then((datajson)=>{
-            for (elem of datajson.results){
-                getPokemon(elem.url)
-            }
-            totalPokemoncargados=totalPokemoncargados+numero;
-            console.log(totalPokemoncargados)
-        })
-
-}
 
 
 document.querySelector("button").addEventListener("click",(evento)=>{
-    getAllPokemons(15,totalPokemoncargados)
+    getPokemon(15,totalPokemoncargados)
 });
 
-getAllPokemons(15)
+getPokemon(15,1)
